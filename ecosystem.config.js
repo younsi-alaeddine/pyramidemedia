@@ -4,7 +4,7 @@ module.exports = {
   apps: [
     {
       name: 'pyramide-api',
-      script: 'dist/main.js',
+      script: 'dist/src/main.js',
       cwd: `${DEPLOY_PATH}/apps/api`,
       instances: 1,
       exec_mode: 'fork',
