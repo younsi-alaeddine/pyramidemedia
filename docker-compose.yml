@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pyramide-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pyramide
+      POSTGRES_PASSWORD: pyramide_secret
+      POSTGRES_DB: pyramide_media
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pyramide -d pyramide_media"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: ../../docker/Dockerfile.api
+    container_name: pyramide-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://pyramide:pyramide_secret@postgres:5432/pyramide_media
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: ../../docker/Dockerfile.web
+    container_name: pyramide-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      API_URL: http://api:3001
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
