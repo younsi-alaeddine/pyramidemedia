@@ -13,6 +13,7 @@ export type CmsSeo = {
   siteTitle: string;
   siteDescription: string;
   ogImage?: string | null;
+  twitterHandle?: string | null;
   googleAnalytics?: string | null;
 };
 
@@ -163,6 +164,11 @@ function mapTeamMember(item: DbTeamMember): TeamMember {
     photo: item.photo ?? undefined,
     social,
   };
+}
+
+
+export async function fetchCmsSeo(): Promise<CmsSeo | null> {
+  return fetchCms<CmsSeo>("/api/content/seo");
 }
 
 export async function fetchCmsContent(_locale: Locale): Promise<CmsContent> {

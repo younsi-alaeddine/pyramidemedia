@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
+import type { CmsSeo } from "@/lib/cms";
 import type { SeoMeta } from "@/types";
+
+function absoluteUrl(pathOrUrl: string): string {
+  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+    return pathOrUrl;
+  }
+  const path = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  return `${siteConfig.url}${path}`;
+}
+
+function normalizeTwitterHandle(handle?: string | null): string | undefined {
+  if (!handle?.trim()) return undefined;
+  const trimmed = handle.trim();
+  return trimmed.startsWith("@") ? trimmed : `@${trimmed}`;
+}
 
 export function createMetadata({
   title,
@@ -8,25 +23,29 @@ export function createMetadata({
   ogImage,
   noIndex = false,
   path = "",
-}: SeoMeta & { path?: string }): Metadata {
+  twitterHandle,
+}: SeoMeta & { path?: string; twitterHandle?: string | null }): Metadata {
   const fullTitle = title.includes(siteConfig.name)
     ? title
     : `${title} | ${siteConfig.name}`;
 
-  const url = `${siteConfig.url}${path}`;
-  const image = ogImage ?? siteConfig.ogImage;
+  const url = absoluteUrl(path);
+  const image = absoluteUrl(ogImage ?? siteConfig.ogImage);
+  const twitterSite = normalizeTwitterHandle(twitterHandle);
 
   return {
     title: fullTitle,
     description,
     keywords: [...siteConfig.keywords],
-    authors: [{ name: siteConfig.name }],
+    authors: [{ name: siteConfig.name, url: siteConfig.url }],
     creator: siteConfig.name,
+    publisher: siteConfig.name,
     metadataBase: new URL(siteConfig.url),
     alternates: { canonical: url },
     openGraph: {
       type: "website",
       locale: "en_US",
+      alternateLocale: ["fr_CA"],
       url,
       title: fullTitle,
       description,
@@ -38,28 +57,77 @@ export function createMetadata({
       title: fullTitle,
       description,
       images: [image],
+      ...(twitterSite ? { site: twitterSite, creator: twitterSite } : {}),
     },
     robots: noIndex
-      ? { index: false, follow: false }
-      : { index: true, follow: true },
+      ? { index: false, follow: false, nocache: true }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+          },
+        },
   };
 }
 
-export function organizationSchema() {
+export function createGlobalMetadata(seo: CmsSeo | null): Metadata {
+  const title = seo?.siteTitle?.trim() || `${siteConfig.name} — ${siteConfig.tagline}`;
+  const description = seo?.siteDescription?.trim() || siteConfig.description;
+  const ogImage = seo?.ogImage?.trim() || undefined;
+
+  return {
+    ...createMetadata({
+      title,
+      description,
+      ogImage,
+      path: "/",
+      twitterHandle: seo?.twitterHandle,
+    }),
+    icons: {
+      icon: "/images/logo-icon.png",
+      apple: "/images/logo-icon.png",
+    },
+  };
+}
+
+export function organizationSchema(seo?: CmsSeo | null) {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: siteConfig.name,
     url: siteConfig.url,
     logo: `${siteConfig.url}/images/logo-dark.png`,
-    description: siteConfig.description,
+    description: seo?.siteDescription?.trim() || siteConfig.description,
     contactPoint: {
       "@type": "ContactPoint",
       telephone: siteConfig.contact.phoneHref,
       contactType: "customer service",
       email: siteConfig.contact.email,
+      areaServed: "CA",
+      availableLanguage: ["English", "French"],
     },
     sameAs: Object.values(siteConfig.social),
+  };
+}
+
+export function webSiteSchema(seo?: CmsSeo | null) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: seo?.siteTitle?.trim() || siteConfig.name,
+    url: siteConfig.url,
+    description: seo?.siteDescription?.trim() || siteConfig.description,
+    inLanguage: ["en-CA", "fr-CA"],
+    publisher: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
   };
 }
 
@@ -95,7 +163,7 @@ export function articleSchema(post: {
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
-    image: post.coverImage,
+    image: post.coverImage ? absoluteUrl(post.coverImage) : undefined,
     datePublished: post.publishedAt,
     author: { "@type": "Person", name: post.author.name },
     publisher: {
@@ -117,7 +185,7 @@ export function breadcrumbSchema(
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: `${siteConfig.url}${item.href}`,
+      item: absoluteUrl(item.href),
     })),
   };
 }
