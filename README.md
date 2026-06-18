@@ -58,6 +58,18 @@ API runs at [http://localhost:3001](http://localhost:3001)
 docker compose up -d
 ```
 
+## Deployment
+
+See [docs/deployment.md](docs/deployment.md) for VPS setup (PM2, nginx, PostgreSQL, CI/CD).
+
+Quick local setup:
+
+```bash
+./deploy/setup-local.sh
+npm run dev:api
+npm run dev:web
+```
+
 ## Pages
 
 - `/` — Home

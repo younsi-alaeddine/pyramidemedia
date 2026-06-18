@@ -3,11 +3,18 @@
   "private": true,
   "workspaces": ["apps/*"],
   "scripts": {
+    "dev": "npm run dev:api & npm run dev:web",
     "dev:web": "npm run dev --workspace=web",
     "dev:api": "npm run start:dev --workspace=api",
     "build:web": "npm run build --workspace=web",
     "build:api": "npm run build --workspace=api",
     "build": "npm run build:web && npm run build:api",
-    "lint": "npm run lint --workspace=web && npm run lint --workspace=api"
+    "lint": "npm run lint --workspace=web && npm run lint --workspace=api",
+    "db:generate": "npm exec --workspace=api prisma generate",
+    "db:migrate": "npm exec --workspace=api prisma migrate dev",
+    "db:deploy": "npm exec --workspace=api prisma migrate deploy",
+    "db:seed": "npm run db:seed --workspace=api",
+    "db:setup": "npm run db:generate && npm run db:migrate && npm run db:seed",
+    "start:prod": "pm2 startOrReload ecosystem.config.js"
   }
 }

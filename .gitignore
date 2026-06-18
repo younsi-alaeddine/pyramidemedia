@@ -29,9 +29,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Prisma
-apps/api/prisma/migrations/**/migration_lock.toml
-
 # Misc
 *.tsbuildinfo
 next-env.d.ts

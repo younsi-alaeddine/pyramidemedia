@@ -1,0 +1,22 @@
+# PostgreSQL only — apps run via PM2 (see ecosystem.config.js)
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pyramide-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pyramide
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pyramide_secret}
+      POSTGRES_DB: pyramide_media
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pyramide -d pyramide_media"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
