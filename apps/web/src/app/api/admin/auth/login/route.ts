@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { ADMIN_TOKEN_COOKIE, loginAdmin } from "@/lib/admin-auth";
+import {
+  ADMIN_TOKEN_COOKIE,
+  isSecureAdminCookie,
+  loginAdmin,
+} from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +14,7 @@ export async function POST(request: Request) {
     response.cookies.set(ADMIN_TOKEN_COOKIE, result.accessToken, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecureAdminCookie(request),
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });

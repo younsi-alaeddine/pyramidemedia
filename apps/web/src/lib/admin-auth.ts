@@ -2,6 +2,15 @@ export const ADMIN_TOKEN_COOKIE = "admin_token";
 
 export const API_URL = process.env.API_URL ?? "http://localhost:3001";
 
+export function isSecureAdminCookie(request: Pick<Request, "url" | "headers">) {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  if (forwardedProto) {
+    return forwardedProto.split(",")[0]?.trim() === "https";
+  }
+
+  return new URL(request.url).protocol === "https:";
+}
+
 export type AdminUser = {
   id: string;
   email: string;
