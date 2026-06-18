@@ -8,6 +8,8 @@ export function generateStaticParams() {
   return [{ locale: "fr" }, { locale: "en" }];
 }
 
+export const revalidate = 60;
+
 export default async function LocaleLayout({
   children,
   params,

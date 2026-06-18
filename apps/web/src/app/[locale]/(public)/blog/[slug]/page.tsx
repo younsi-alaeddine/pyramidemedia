@@ -1,29 +1,41 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar } from "lucide-react";
-import { getBlogPostBySlug, getBlogPosts } from "@/data/content";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { FadeIn } from "@/components/shared/motion";
 import { CtaSection } from "@/components/sections/cta";
 import { articleSchema, breadcrumbSchema, createMetadata } from "@/lib/seo";
-import { getDictionary } from "@/i18n/get-dictionary";
+import {
+  getDictionary,
+  getAllBlogPostsFromCms,
+  getBlogPostBySlugFromCms,
+} from "@/i18n/get-dictionary";
 import { isValidLocale, localizedPath, type Locale } from "@/i18n/config";
+
+export const revalidate = 60;
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   const locales: Locale[] = ["fr", "en"];
-  return locales.flatMap((locale) =>
-    getBlogPosts(locale).map((p) => ({ locale, slug: p.slug }))
-  );
+  const params = [];
+
+  for (const locale of locales) {
+    const posts = await getAllBlogPostsFromCms(locale);
+    for (const post of posts) {
+      params.push({ locale, slug: post.slug });
+    }
+  }
+
+  return params;
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) return {};
-  const post = getBlogPostBySlug(locale, slug);
+  const post = await getBlogPostBySlugFromCms(locale, slug);
   if (!post) return {};
 
   return createMetadata({
@@ -37,7 +49,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
   const dict = await getDictionary(locale);
-  const post = getBlogPostBySlug(locale, slug);
+  const post = await getBlogPostBySlugFromCms(locale, slug);
   if (!post) notFound();
 
   const dateLocale = locale === "fr" ? "fr-CA" : "en-US";

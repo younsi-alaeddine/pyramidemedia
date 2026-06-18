@@ -1,52 +1,51 @@
-import type { Service, BlogPost, PortfolioItem } from "@/types";
-import { defaultLocale } from "@/i18n/config";
+import type {
+  BlogPost,
+  PortfolioItem,
+  Service,
+  TeamMember,
+  Testimonial,
+} from "@/types";
+import type { Locale } from "@/i18n/config";
 import {
-  services as staticServices,
-  blogPosts as staticBlogPosts,
-  portfolioItems as staticPortfolio,
-  getServiceBySlug,
-  getBlogPostBySlug,
-  getPortfolioBySlug,
-} from "@/data/content";
-
-const API_URL = process.env.API_URL ?? "http://localhost:3001";
-
-async function fetchApi<T>(path: string): Promise<T | null> {
-  try {
-    const res = await fetch(`${API_URL}${path}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
+  getAllBlogPostsFromCms,
+  getAllPortfolioFromCms,
+  getAllServicesFromCms,
+  getBlogPostBySlugFromCms,
+  getPortfolioBySlugFromCms,
+  getServiceBySlugFromCms,
+} from "@/i18n/get-dictionary";
 
 export async function getServices(): Promise<Service[]> {
-  const data = await fetchApi<Service[]>("/api/services");
-  return data ?? staticServices;
+  return getAllServicesFromCms("fr");
 }
 
-export async function getService(slug: string): Promise<Service | undefined> {
-  const data = await fetchApi<Service>(`/api/services/${slug}`);
-  return data ?? getServiceBySlug(defaultLocale, slug);
+export async function getService(
+  locale: Locale,
+  slug: string,
+): Promise<Service | undefined> {
+  return getServiceBySlugFromCms(locale, slug);
 }
 
-export function getServicesSync(): Service[] {
-  return staticServices;
+export async function getBlogPosts(locale: Locale): Promise<BlogPost[]> {
+  return getAllBlogPostsFromCms(locale);
 }
 
-export function getBlogPostsSync(): BlogPost[] {
-  return staticBlogPosts;
+export async function getBlogPost(
+  locale: Locale,
+  slug: string,
+): Promise<BlogPost | undefined> {
+  return getBlogPostBySlugFromCms(locale, slug);
 }
 
-export function getPortfolioSync(): PortfolioItem[] {
-  return staticPortfolio;
+export async function getPortfolioItems(locale: Locale): Promise<PortfolioItem[]> {
+  return getAllPortfolioFromCms(locale);
 }
 
-export {
-  getServiceBySlug as getStaticService,
-  getBlogPostBySlug as getStaticBlogPost,
-  getPortfolioBySlug as getStaticPortfolio,
-};
+export async function getPortfolioItem(
+  locale: Locale,
+  slug: string,
+): Promise<PortfolioItem | undefined> {
+  return getPortfolioBySlugFromCms(locale, slug);
+}
+
+export type { Service, BlogPost, PortfolioItem, Testimonial, TeamMember };

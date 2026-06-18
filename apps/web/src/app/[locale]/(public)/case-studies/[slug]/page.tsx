@@ -2,30 +2,40 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getPortfolioBySlug, getPortfolioItems } from "@/data/content";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CtaSection } from "@/components/sections/cta";
 import { FadeIn } from "@/components/shared/motion";
 import { createMetadata } from "@/lib/seo";
-import { getDictionary } from "@/i18n/get-dictionary";
+import {
+  getDictionary,
+  getAllPortfolioFromCms,
+  getPortfolioBySlugFromCms,
+} from "@/i18n/get-dictionary";
 import { isValidLocale, localizedPath, type Locale } from "@/i18n/config";
+
+export const revalidate = 60;
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   const locales: Locale[] = ["fr", "en"];
-  return locales.flatMap((locale) =>
-    getPortfolioItems(locale)
-      .filter((p) => p.caseStudyUrl)
-      .map((p) => ({ locale, slug: p.slug }))
-  );
+  const params = [];
+
+  for (const locale of locales) {
+    const items = await getAllPortfolioFromCms(locale);
+    for (const item of items.filter((entry) => entry.caseStudyUrl)) {
+      params.push({ locale, slug: item.slug });
+    }
+  }
+
+  return params;
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) return {};
-  const item = getPortfolioBySlug(locale, slug);
+  const item = await getPortfolioBySlugFromCms(locale, slug);
   if (!item) return {};
 
   return createMetadata({
@@ -39,7 +49,7 @@ export default async function CaseStudyPage({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
   const dict = await getDictionary(locale);
-  const item = getPortfolioBySlug(locale, slug);
+  const item = await getPortfolioBySlugFromCms(locale, slug);
   if (!item) notFound();
 
   const challengeText = dict.caseStudy.challengeText.replace("{client}", item.client);

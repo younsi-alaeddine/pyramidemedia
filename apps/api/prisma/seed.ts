@@ -187,6 +187,110 @@ async function main() {
     },
   });
 
+  const services = [
+    {
+      slug: 'website-development',
+      title: 'Website Development',
+      shortDescription:
+        'High-performance, conversion-focused websites built with modern technologies.',
+      description:
+        'We design and develop custom websites that combine stunning design with exceptional performance.',
+      icon: 'globe',
+      features: [
+        'Responsive mobile-first design',
+        'Next.js and React development',
+        'CMS integration',
+        'Performance optimization',
+      ],
+      order: 1,
+    },
+    {
+      slug: 'e-commerce',
+      title: 'E-commerce Solutions',
+      shortDescription:
+        'Scalable online stores designed for seamless shopping experiences.',
+      description:
+        'Transform your retail vision into a high-performing e-commerce platform.',
+      icon: 'shopping-cart',
+      features: ['Custom storefront design', 'Shopify and headless commerce', 'Payment integration'],
+      order: 2,
+    },
+    {
+      slug: 'custom-software',
+      title: 'Custom Software Development',
+      shortDescription: 'Tailored software solutions for unique business challenges.',
+      description: 'When off-the-shelf software is not enough, we build around your workflows.',
+      icon: 'code',
+      features: ['Requirements analysis', 'Full-stack development', 'API design'],
+      order: 3,
+    },
+  ];
+
+  for (const service of services) {
+    await prisma.service.upsert({
+      where: { slug: service.slug },
+      update: {
+        ...service,
+        status: PublishStatus.PUBLISHED,
+        authorId: admin.id,
+      },
+      create: {
+        ...service,
+        status: PublishStatus.PUBLISHED,
+        authorId: admin.id,
+      },
+    });
+  }
+
+  const blogPosts = [
+    {
+      slug: 'future-of-web-development-2026',
+      title: 'The Future of Web Development in 2026',
+      excerpt:
+        'Explore the trends shaping modern web development — from server components to edge computing and beyond.',
+      content:
+        'Web development is evolving at an unprecedented pace. Server-first architectures, performance optimization, and thoughtful engineering remain central to building competitive digital products.',
+      tags: ['Web Development', 'Technology', 'Trends'],
+      publishedAt: new Date('2026-03-15'),
+    },
+    {
+      slug: 'ecommerce-conversion-optimization',
+      title: '10 E-commerce Conversion Optimization Strategies That Work',
+      excerpt:
+        'Proven tactics to turn more visitors into paying customers and increase your average order value.',
+      content:
+        'Conversion rate optimization is the highest-ROI activity for any e-commerce business. Streamline checkout, optimize product pages, and leverage social proof.',
+      tags: ['E-commerce', 'Marketing', 'Conversion'],
+      publishedAt: new Date('2026-02-28'),
+    },
+    {
+      slug: 'brand-identity-digital-age',
+      title: 'Building a Brand Identity That Stands Out in the Digital Age',
+      excerpt:
+        'How to create a cohesive brand presence that resonates across all digital touchpoints.',
+      content:
+        'A strong brand identity is your most valuable asset online. Consistency, digital-first design, and story-driven branding help you stand out.',
+      tags: ['Branding', 'Design', 'Strategy'],
+      publishedAt: new Date('2026-01-20'),
+    },
+  ];
+
+  for (const post of blogPosts) {
+    await prisma.blogPost.upsert({
+      where: { slug: post.slug },
+      update: {
+        ...post,
+        status: PublishStatus.PUBLISHED,
+        authorId: admin.id,
+      },
+      create: {
+        ...post,
+        status: PublishStatus.PUBLISHED,
+        authorId: admin.id,
+      },
+    });
+  }
+
   console.log(`Seeded admin user: ${email}`);
 }
 

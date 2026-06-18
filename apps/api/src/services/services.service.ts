@@ -13,6 +13,8 @@ export class ServicesApiService {
   }
 
   findBySlug(slug: string) {
-    return this.prisma.service.findUnique({ where: { slug } });
+    return this.prisma.service.findFirst({
+      where: { slug, status: 'PUBLISHED' },
+    });
   }
 }

@@ -8,7 +8,8 @@ export default function AdminDashboardPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome to the Pyramide Media admin panel.
+          Overview of content stored in the database. Changes appear on the public
+          website within a minute.
         </p>
       </div>
 

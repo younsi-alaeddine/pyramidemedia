@@ -7,7 +7,8 @@ export default function AdminServicesPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Services</h1>
         <p className="text-muted-foreground">
-          Manage services stored in the database.
+          Manage services shown on the website. Published items replace the static
+          fallback content automatically.
         </p>
       </div>
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { ADMIN_TOKEN_COOKIE, API_URL } from "@/lib/admin-auth";
 
@@ -24,6 +25,13 @@ async function proxyRequest(request: NextRequest, path: string) {
 
   const response = await fetch(url, init);
   const text = await response.text();
+
+  if (
+    response.ok &&
+    ["POST", "PATCH", "DELETE"].includes(request.method)
+  ) {
+    revalidatePath("/", "layout");
+  }
 
   return new NextResponse(text || null, {
     status: response.status,

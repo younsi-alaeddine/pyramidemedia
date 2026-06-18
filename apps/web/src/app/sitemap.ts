@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
-import { locales, localizedPath } from "@/i18n/config";
+import { locales, localizedPath, type Locale } from "@/i18n/config";
 import {
-  getServices,
-  getBlogPosts,
-  getPortfolioItems,
-} from "@/data/content";
+  getAllBlogPostsFromCms,
+  getAllPortfolioFromCms,
+  getAllServicesFromCms,
+} from "@/i18n/get-dictionary";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;
 
   const staticPaths = [
@@ -28,37 +28,51 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: path === "" ? 1 : 0.8,
-    }))
+    })),
   );
 
-  const servicePages = locales.flatMap((locale) =>
-    getServices(locale).map((s) => ({
-      url: `${baseUrl}${localizedPath(`/services/${s.slug}`, locale)}`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    }))
-  );
-
-  const blogPages = locales.flatMap((locale) =>
-    getBlogPosts(locale).map((p) => ({
-      url: `${baseUrl}${localizedPath(`/blog/${p.slug}`, locale)}`,
-      lastModified: new Date(p.publishedAt),
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }))
-  );
-
-  const caseStudyPages = locales.flatMap((locale) =>
-    getPortfolioItems(locale)
-      .filter((p) => p.caseStudyUrl)
-      .map((p) => ({
-        url: `${baseUrl}${localizedPath(`/case-studies/${p.slug}`, locale)}`,
+  const servicePages = await Promise.all(
+    locales.map(async (locale) => {
+      const services = await getAllServicesFromCms(locale as Locale);
+      return services.map((service) => ({
+        url: `${baseUrl}${localizedPath(`/services/${service.slug}`, locale as Locale)}`,
         lastModified: new Date(),
         changeFrequency: "monthly" as const,
-        priority: 0.6,
-      }))
+        priority: 0.7,
+      }));
+    }),
   );
 
-  return [...staticPages, ...servicePages, ...blogPages, ...caseStudyPages];
+  const blogPages = await Promise.all(
+    locales.map(async (locale) => {
+      const posts = await getAllBlogPostsFromCms(locale as Locale);
+      return posts.map((post) => ({
+        url: `${baseUrl}${localizedPath(`/blog/${post.slug}`, locale as Locale)}`,
+        lastModified: new Date(post.publishedAt),
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }));
+    }),
+  );
+
+  const caseStudyPages = await Promise.all(
+    locales.map(async (locale) => {
+      const items = await getAllPortfolioFromCms(locale as Locale);
+      return items
+        .filter((item) => item.caseStudyUrl)
+        .map((item) => ({
+          url: `${baseUrl}${localizedPath(`/case-studies/${item.slug}`, locale as Locale)}`,
+          lastModified: new Date(),
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+        }));
+    }),
+  );
+
+  return [
+    ...staticPages,
+    ...servicePages.flat(),
+    ...blogPages.flat(),
+    ...caseStudyPages.flat(),
+  ];
 }

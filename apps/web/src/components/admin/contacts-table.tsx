@@ -93,6 +93,7 @@ export function AdminContactsTable() {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Service</TableHead>
+                <TableHead>Message</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
               </TableRow>
@@ -103,6 +104,9 @@ export function AdminContactsTable() {
                   <TableCell className="font-medium">{contact.name}</TableCell>
                   <TableCell>{contact.email}</TableCell>
                   <TableCell>{contact.service ?? "—"}</TableCell>
+                  <TableCell className="max-w-xs truncate text-muted-foreground">
+                    {contact.message}
+                  </TableCell>
                   <TableCell>
                     <select
                       className="rounded-md border border-border bg-background px-2 py-1 text-xs"

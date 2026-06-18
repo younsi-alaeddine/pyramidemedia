@@ -8,6 +8,7 @@ import { NewsletterModule } from './newsletter/newsletter.module';
 import { ServicesModule } from './services/services.module';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
+import { ContentModule } from './content/content.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -20,6 +21,7 @@ import { HealthController } from './health.controller';
     ContactModule,
     NewsletterModule,
     ServicesModule,
+    ContentModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

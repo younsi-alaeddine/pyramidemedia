@@ -11,6 +11,7 @@ type SeoSettings = {
   siteTitle: string;
   siteDescription: string;
   ogImage?: string | null;
+  twitterHandle?: string | null;
   googleAnalytics?: string | null;
 };
 
@@ -42,7 +43,7 @@ export function AdminSeoForm() {
         body: JSON.stringify(settings),
       });
       if (!res.ok) throw new Error("Save failed");
-      toast.success("SEO settings saved");
+      toast.success("SEO settings saved — the public site will refresh shortly.");
     } catch {
       toast.error("Unable to save SEO settings");
     } finally {
@@ -84,6 +85,17 @@ export function AdminSeoForm() {
           value={settings.ogImage ?? ""}
           onChange={(event) =>
             setSettings({ ...settings, ogImage: event.target.value })
+          }
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="twitterHandle">Twitter / X handle</Label>
+        <Input
+          id="twitterHandle"
+          placeholder="@pyramidemedia"
+          value={settings.twitterHandle ?? ""}
+          onChange={(event) =>
+            setSettings({ ...settings, twitterHandle: event.target.value })
           }
         />
       </div>

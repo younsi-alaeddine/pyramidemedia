@@ -1,29 +1,41 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Check } from "lucide-react";
-import { getServiceBySlug, getServices } from "@/data/content";
 import { serviceIconMap } from "@/config/navigation";
 import { CtaSection } from "@/components/sections/cta";
 import { FadeIn } from "@/components/shared/motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { createMetadata, serviceSchema, breadcrumbSchema } from "@/lib/seo";
-import { getDictionary } from "@/i18n/get-dictionary";
+import {
+  getDictionary,
+  getServiceBySlugFromCms,
+  getAllServicesFromCms,
+} from "@/i18n/get-dictionary";
 import { isValidLocale, localizedPath, type Locale } from "@/i18n/config";
+
+export const revalidate = 60;
 
 type PageProps = { params: Promise<{ locale: string; slug: string }> };
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
   const locales: Locale[] = ["fr", "en"];
-  return locales.flatMap((locale) =>
-    getServices(locale).map((s) => ({ locale, slug: s.slug }))
-  );
+  const params = [];
+
+  for (const locale of locales) {
+    const services = await getAllServicesFromCms(locale);
+    for (const service of services) {
+      params.push({ locale, slug: service.slug });
+    }
+  }
+
+  return params;
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) return {};
-  const service = getServiceBySlug(locale, slug);
+  const service = await getServiceBySlugFromCms(locale, slug);
   if (!service) return {};
 
   return createMetadata({
@@ -37,7 +49,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
   const dict = await getDictionary(locale);
-  const service = getServiceBySlug(locale, slug);
+  const service = await getServiceBySlugFromCms(locale, slug);
   if (!service) notFound();
 
   const Icon = serviceIconMap[service.icon] ?? serviceIconMap.globe;
